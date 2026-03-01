@@ -1,8 +1,10 @@
 import express from 'express';
-import { getUnitSchedule } from '../controller/scheduler.js';
+import { createSession, updateSession } from '../controller/scheduler.js';
 
 const router = express.Router();
 
-router.get('/:unitId', getUnitSchedule);
+
+router.post('/:unitId',createSession);
+router.patch("/update/:sessionID", updateSession);
 
 export default router;

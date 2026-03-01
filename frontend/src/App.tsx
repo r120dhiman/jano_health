@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
-import AddPatient from "./components/AllPatients";
+import AddPatient from "./components/AddPatient";
 import AddSessionForm from "./components/AddSessionForm";
 import Home from "./components/Home";
 import SessionDetails from "./components/SessionDetails";

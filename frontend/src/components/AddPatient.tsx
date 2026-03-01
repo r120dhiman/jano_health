@@ -51,7 +51,7 @@ function AddPatient() {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/patients");
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/patients`);
         setAllPatient(response.data.data || response.data);
       } catch (err: any) {
         setError("Failed to fetch patients");

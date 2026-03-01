@@ -96,7 +96,7 @@ const AddSessionForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
     };
 
     try {
-      await axios.post(`http://localhost:3001/api/schedule/${formData.get('unit_id')}`, payload);
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/schedule/${formData.get('unit_id')}`, payload);
       onSuccess();
       navigate('/');
     } catch (err: any) {

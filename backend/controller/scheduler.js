@@ -1,5 +1,6 @@
 import { Session } from '../Model/session.js';
 import { Patient } from '../Model/patient.js';
+import { detectSessionAnomalies } from '../utils/detectAnomalies.js';
 
 // Returns all sessions for a unit, grouped by patient (example implementation)
 // Get a session by sessionID
@@ -54,8 +55,19 @@ export const createSession = async (req, res) => {
       });
     }
 
+
+    // Detect anomalies (pre-session only, as post values not present yet)
+    const sessionForDetection = {
+      vitals: {
+        pre_weight: vitals.pre_weight,
+        pre_bp_sys: vitals.pre_bp_sys,
+        pre_bp_dia: vitals.pre_bp_dia
+      },
+      timestamps
+    };
+    const detectedAnomalies = await detectSessionAnomalies(sessionForDetection, patient._id);
+
     // 3️⃣ Create new session
-    // Only store pre-session vitals at creation
     const newSession = await Session.create({
       patient_id: patient._id,
       unit_id,
@@ -66,7 +78,7 @@ export const createSession = async (req, res) => {
         pre_bp_dia: vitals.pre_bp_dia
       },
       nurse_notes,
-      anomalies
+      anomalies: detectedAnomalies
     });
 
     // 4️⃣ Populate patient details in response
@@ -116,6 +128,10 @@ export const updateSession = async (req, res) => {
     if (nurse_notes !== undefined) {
       session.nurse_notes = nurse_notes;
     }
+
+    // Detect anomalies (now we may have post values)
+    const detectedAnomalies = await detectSessionAnomalies(session, session.patient_id);
+    session.anomalies = detectedAnomalies;
 
     // Save changes
     await session.save();

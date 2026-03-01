@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { ANOMALY_LABELS } from "../config/rules";
 
 interface Patient {
   _id: string;
@@ -94,12 +95,13 @@ const Home: React.FC = () => {
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [showAnomaliesOnly, setShowAnomaliesOnly] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/session");
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/session`);
         if (!res.ok) throw new Error("Failed to fetch sessions");
         const data: ApiResponse = await res.json();
         setSessions(data.sessions);
@@ -112,11 +114,14 @@ const Home: React.FC = () => {
     fetchSessions();
   }, []);
 
-  const filtered = sessions.filter((s) =>
+  let filtered = sessions.filter((s) =>
     [s.patient_id?.name, s.unit_id, s.status, s.nurse_notes].some((v) =>
       v?.toLowerCase().includes(search.toLowerCase())
     )
   );
+  if (showAnomaliesOnly) {
+    filtered = filtered.filter((s) => Array.isArray(s.anomalies) && s.anomalies.length > 0);
+  }
 
   const completed   = sessions.filter((s) => s.status === "completed").length;
   const inProgress  = sessions.filter((s) => s.status === "in_progress").length;
@@ -235,29 +240,42 @@ const Home: React.FC = () => {
                           shadow-[0_4px_24px_rgba(37,206,209,0.08),0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="shimmer-top" />
 
-            {/* Search + meta bar */}
+            {/* Search + meta bar + anomaly filter */}
             <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-[#F4F4F4]">
-              <div className={`flex items-center gap-2.5 bg-[#F4F4F4] rounded-xl px-3.5 py-2 border transition-all duration-300 w-72
-                               ${searchFocused ? "border-[#25CED1] bg-white shadow-[0_0_0_4px_rgba(37,206,209,0.1)]" : "border-transparent"}`}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke={searchFocused ? "#25CED1" : "#9ca3af"} strokeWidth="2" strokeLinecap="round"
-                  className="flex-shrink-0 transition-colors duration-200">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search sessions…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  className="flex-1 bg-transparent text-xs text-[#1a1a2e] placeholder-[#c4cdd6] outline-none"
-                  style={{ fontFamily: "'DM Sans', sans-serif" }}
-                />
-                {search && (
-                  <button onClick={() => setSearch("")}
-                    className="text-[#9ca3af] hover:text-[#FF8A5B] transition-colors text-base leading-none">×</button>
-                )}
+              <div className="flex items-center gap-3">
+                <div className={`flex items-center gap-2.5 bg-[#F4F4F4] rounded-xl px-3.5 py-2 border transition-all duration-300 w-72
+                                 ${searchFocused ? "border-[#25CED1] bg-white shadow-[0_0_0_4px_rgba(37,206,209,0.1)]" : "border-transparent"}`}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke={searchFocused ? "#25CED1" : "#9ca3af"} strokeWidth="2" strokeLinecap="round"
+                    className="flex-shrink-0 transition-colors duration-200">
+                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search sessions…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    className="flex-1 bg-transparent text-xs text-[#1a1a2e] placeholder-[#c4cdd6] outline-none"
+                    style={{ fontFamily: "'DM Sans', sans-serif" }}
+                  />
+                  {search && (
+                    <button onClick={() => setSearch("")}
+                      className="text-[#9ca3af] hover:text-[#FF8A5B] transition-colors text-base leading-none">×</button>
+                  )}
+                </div>
+                <button
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg border text-xs font-semibold transition
+                    ${showAnomaliesOnly ? 'bg-[#FF8A5B]/10 border-[#FF8A5B] text-[#FF8A5B]' : 'bg-[#F4F4F4] border-[#e5e7eb] text-[#b0b8c4] hover:border-[#25CED1] hover:text-[#25CED1]'}`}
+                  onClick={() => setShowAnomaliesOnly((v) => !v)}
+                  title="Show only sessions with anomalies"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="inline-block">
+                    <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  Anomalies
+                </button>
               </div>
               {!loading && (
                 <p className="text-xs text-[#b0b8c4] shrink-0">
@@ -311,13 +329,14 @@ const Home: React.FC = () => {
                   ) : (
                     filtered.map((session, i) => {
                       const isHovered = hoveredRow === session._id;
+                      const hasAnomalies = Array.isArray(session.anomalies) && session.anomalies.length > 0;
                       return (
                         <tr
                           key={session._id}
-                          className="session-row cursor-pointer transition-colors duration-150"
+                          className={`session-row cursor-pointer transition-colors duration-150 ${hasAnomalies ? 'bg-[#FF8A5B]/10 border-l-4 border-[#FF8A5B]' : ''}`}
                           style={{
                             animationDelay: `${i * 40}ms`,
-                            background: isHovered ? "rgba(37,206,209,0.04)" : "transparent",
+                            background: isHovered ? "rgba(37,206,209,0.04)" : undefined,
                           }}
                           onMouseEnter={() => setHoveredRow(session._id)}
                           onMouseLeave={() => setHoveredRow(null)}
@@ -340,9 +359,16 @@ const Home: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* Status */}
+                          {/* Status + Anomaly badge */}
                           <td className="td-cell">
-                            <StatusBadge status={session.status} />
+                            <div className="flex items-center gap-1.5">
+                              <StatusBadge status={session.status} />
+                              {hasAnomalies && (
+                                <span className="ml-1 px-2 py-0.5 bg-[#FF8A5B] text-white text-[10px] rounded-full font-bold animate-pulse" title={session.anomalies.map(a => ANOMALY_LABELS[a] || a).join(', ')}>
+                                  !
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* Session Start */}

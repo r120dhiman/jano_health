@@ -18,7 +18,7 @@ export const useFetchSchedule = (unitId: string) => {
   const fetchData = async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const response = await axios.get(`http://localhost:3001/api/schedule/${unitId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/schedule/${unitId}`);
       setState({
         data: response.data.data, // Accessing the array from the backend response
         loading: false,

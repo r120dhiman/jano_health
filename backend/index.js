@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './Database/Dbconnection.js';
 import patientRoutes from './routes/patient.js';
+import sessionRoutes from './routes/session.js';
 import dotenv from 'dotenv';
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 app.use('/api/patients', patientRoutes);
+app.use('/api/session', sessionRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

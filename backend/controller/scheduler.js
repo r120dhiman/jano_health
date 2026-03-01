@@ -17,7 +17,6 @@ export const createSession = async (req, res) => {
       anomalies
     } = req.body;
 
-    // Basic validation
     if (!name || !dob || !dry_weight_kg || !unit_id) {
       return res.status(400).json({ message: "Missing required patient fields" });
     }
@@ -25,7 +24,6 @@ export const createSession = async (req, res) => {
     if (!timestamps?.start || !timestamps?.end || !vitals) {
       return res.status(400).json({ message: "Missing required session fields" });
     }
-    // Validate vitals fields for creation (only pre values required)
     if (
       typeof vitals.pre_weight !== 'number' ||
       typeof vitals.pre_bp_sys !== 'number' ||
@@ -34,14 +32,12 @@ export const createSession = async (req, res) => {
       return res.status(400).json({ message: "Missing or invalid pre-session vitals (pre_weight, pre_bp_sys, pre_bp_dia)" });
     }
 
-    // 1️⃣ Check if patient exists (using email if provided)
     let patient = null;
 
     if (email) {
       patient = await Patient.findOne({ email });
     }
 
-    // 2️⃣ If patient doesn't exist → create new one
     if (!patient) {
       patient = await Patient.create({
         name,
@@ -53,7 +49,6 @@ export const createSession = async (req, res) => {
     }
 
 
-    // Detect anomalies (pre-session only, as post values not present yet)
     const sessionForDetection = {
       vitals: {
         pre_weight: vitals.pre_weight,
@@ -64,7 +59,6 @@ export const createSession = async (req, res) => {
     };
     const detectedAnomalies = await detectSessionAnomalies(sessionForDetection, patient._id);
 
-    // 3️⃣ Create new session
     const newSession = await Session.create({
       patient_id: patient._id,
       unit_id,
@@ -79,7 +73,6 @@ export const createSession = async (req, res) => {
       anomalies: detectedAnomalies
     });
 
-    // 4️⃣ Populate patient details in response
     const populatedSession = await Session.findById(newSession._id)
       .populate("patient_id", "name email");
 
@@ -97,41 +90,34 @@ export const createSession = async (req, res) => {
 };
 
 
-// PATCH /api/schedule/update/:sessionID
 export const updateSession = async (req, res) => {
   try {
     const { sessionID } = req.params;
     const { status, vitals, nurse_notes } = req.body;
 
-    // Find session by ID
     const session = await Session.findById(sessionID);
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    // Update status
     if (status) {
       session.status = status;
     }
 
-    // Update post vitals if provided (for ending session)
     if (vitals) {
       session.vitals = {
         ...session.vitals,
-        ...vitals, // merge existing vitals with new post vitals
+        ...vitals,
       };
     }
 
-    // Update nurse notes if provided
     if (nurse_notes !== undefined) {
       session.nurse_notes = nurse_notes;
     }
 
-    // Detect anomalies (now we may have post values)
     const detectedAnomalies = await detectSessionAnomalies(session, session.patient_id);
     session.anomalies = detectedAnomalies;
 
-    // Save changes
     await session.save();
 
     res.status(200).json({

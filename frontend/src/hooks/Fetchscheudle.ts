@@ -20,7 +20,7 @@ export const useFetchSchedule = (unitId: string) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/schedule/${unitId}`);
       setState({
-        data: response.data.data, // Accessing the array from the backend response
+        data: response.data.data,
         loading: false,
         error: null,
       });

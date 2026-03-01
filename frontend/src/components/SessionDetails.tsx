@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import axios from "axios";
 
-// FloatingInput Component
+
 const FloatingInput: React.FC<{
   label: string;
   type?: string;
@@ -39,7 +39,6 @@ const FloatingInput: React.FC<{
   );
 };
 
-// Dummy components for missing ones
 const VitalPill: React.FC<{ label: string; value: string; accent?: boolean }> = ({
   label,
   value,
@@ -97,7 +96,6 @@ const StatusBadge: React.FC<{ status?: string }> = ({ status }) => {
   );
 };
 
-// Session type
 interface Session {
   _id: string;
   patient_id: {

@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { getAllPatients } from '../controller/patient.js';
 import { Patient } from '../Model/patient.js';
 
-// Simple mock response object for controller testing
 function createMockRes() {
   return {
     statusCode: 0,
@@ -26,7 +25,6 @@ test('getAllPatients returns patients list with 200 status', async () => {
     { _id: '2', name: 'Bob' },
   ];
 
-  // Patch Patient.find to avoid hitting the real database
   const originalFind = Patient.find;
   Patient.find = () => ({
     sort: () => Promise.resolve(mockPatients),
@@ -41,7 +39,6 @@ test('getAllPatients returns patients list with 200 status', async () => {
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, mockPatients);
   } finally {
-    // Restore original implementation to avoid side effects
     Patient.find = originalFind;
   }
 });

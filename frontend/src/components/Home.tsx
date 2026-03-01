@@ -33,7 +33,7 @@ interface ApiResponse {
   sessions: Session[];
 }
 
-/* ─── Helpers ─── */
+
 const getInitials = (name: string) =>
   name?.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() ?? "?";
 
@@ -81,7 +81,6 @@ const BPDisplay: React.FC<{ sys?: number; dia?: number }> = ({ sys, dia }) =>
     <span className="text-[#b0b8c4] text-sm">—</span>
   );
 
-/* ─── Skeleton row ─── */
 const SkeletonRow = () => (
   <tr className="border-b border-[#F4F4F4]">
     {Array.from({ length: 8 }).map((_, i) => (
@@ -92,7 +91,7 @@ const SkeletonRow = () => (
   </tr>
 );
 
-/* ─── Main ─── */
+
 const Home: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -202,7 +201,6 @@ const Home: React.FC = () => {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-10">
 
-          {/* ── Header ── */}
           <div className="header-appear mb-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
@@ -218,7 +216,6 @@ const Home: React.FC = () => {
                 </p>
               </div>
 
-              {/* Stat chips */}
               {!loading && (
                 <div className="flex gap-3 flex-wrap">
                   <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2.5 border border-[#25CED1]/15 shadow-sm">
@@ -240,12 +237,10 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Table card ── */}
           <div className="table-appear bg-white rounded-2xl overflow-hidden border border-[#25CED1]/10
                           shadow-[0_4px_24px_rgba(37,206,209,0.08),0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="shimmer-top" />
 
-            {/* Search + meta bar + anomaly filter */}
             <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-[#F4F4F4]">
               <div className="flex items-center gap-3">
                 <div className={`flex items-center gap-2.5 bg-[#F4F4F4] rounded-xl px-3.5 py-2 border transition-all duration-300 w-72
@@ -289,7 +284,6 @@ const Home: React.FC = () => {
               )}
             </div>
 
-            {/* Error */}
             {error && (
               <div className="flex items-center gap-3 mx-6 my-4 bg-[#FF8A5B]/6 border border-[#FF8A5B]/25 rounded-xl px-4 py-3">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FF8A5B" strokeWidth="2.5" strokeLinecap="round">
@@ -299,7 +293,6 @@ const Home: React.FC = () => {
               </div>
             )}
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
@@ -347,7 +340,6 @@ const Home: React.FC = () => {
                           onMouseLeave={() => setHoveredRow(null)}
                           onClick={() => navigate(`/session/${session._id}`)}
                         >
-                          {/* Patient */}
                           <td className="td-cell">
                             <div className="flex items-center gap-3">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px] font-bold border ${avatarColors[i % avatarColors.length]}`}>
@@ -364,7 +356,6 @@ const Home: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* Status + Anomaly badge */}
                           <td className="td-cell">
                             <div className="flex items-center gap-1.5">
                               <StatusBadge status={session.status} />
@@ -376,7 +367,6 @@ const Home: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* Session Start */}
                           <td className="td-cell">
                             <div>
                               <p className="text-[#1a1a2e] font-medium text-sm">
@@ -388,23 +378,19 @@ const Home: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* Pre BP */}
                           <td className="td-cell">
                             <BPDisplay sys={session.vitals.pre_bp_sys} dia={session.vitals.pre_bp_dia} />
                           </td>
 
-                          {/* Pre Weight */}
                           <td className="td-cell">
                             <span className="font-semibold text-[#1a1a2e] text-sm">{session.vitals.pre_weight}</span>
                             <span className="text-[10px] text-[#b0b8c4] ml-1">kg</span>
                           </td>
 
-                          {/* Post BP */}
                           <td className="td-cell">
                             <BPDisplay sys={session.vitals.post_bp_sys} dia={session.vitals.post_bp_dia} />
                           </td>
 
-                          {/* Post Weight */}
                           <td className="td-cell">
                             {session.vitals.post_weight !== undefined ? (
                               <>

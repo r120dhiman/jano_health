@@ -5,7 +5,6 @@ import Home from './Home';
 
 describe('Home dashboard view', () => {
   beforeEach(() => {
-    // @ts-expect-error – allow overriding global fetch for tests
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({

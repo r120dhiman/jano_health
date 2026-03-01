@@ -1,41 +1,47 @@
-// Utility to detect anomalies in a session based on clinical rules
-// Returns an array of anomaly keys
-import { ANOMALY_DEFINITIONS } from './anomalies.js';
+import { ANOMALY_CONFIG } from './anomalies.js';
 import { Patient } from '../Model/patient.js';
 
-export async function detectSessionAnomalies(session, patientId) {
+export function detectSessionAnomaliesForPatient(session, patient) {
   const anomalies = [];
-  // Fetch patient for dry weight
-  let patient = null;
-  if (patientId) {
-    patient = await Patient.findById(patientId);
-  }
-  if (!patient) return anomalies;
+  if (!session || !patient) return anomalies;
 
-  // 1. Excessive interdialytic weight gain (>5% of dry weight)
+  const { vitals = {}, timestamps = {} } = session;
+  const { dry_weight_kg } = patient;
+
   if (
-    session.vitals?.pre_weight &&
-    patient.dry_weight_kg &&
-    session.vitals.pre_weight > patient.dry_weight_kg * 1.05
+    typeof vitals.pre_weight === 'number' &&
+    typeof dry_weight_kg === 'number' &&
+    dry_weight_kg > 0 &&
+    vitals.pre_weight > dry_weight_kg * (1 + ANOMALY_CONFIG.EXCESSIVE_WEIGHT_GAIN_PERCENT)
   ) {
     anomalies.push('EXCESSIVE_WEIGHT_GAIN');
   }
 
-  // 2. High post-dialysis systolic BP (>160 mmHg)
   if (
-    session.vitals?.post_bp_sys &&
-    session.vitals.post_bp_sys > 160
+    typeof vitals.post_bp_sys === 'number' &&
+    vitals.post_bp_sys > ANOMALY_CONFIG.HIGH_POST_BP_SYSTOLIC
   ) {
     anomalies.push('HIGH_POST_BP');
   }
 
-  // 3. Short/Long session duration (optional, can add)
-  if (session.timestamps?.start && session.timestamps?.end) {
-    const durationMs = new Date(session.timestamps.end) - new Date(session.timestamps.start);
+  if (timestamps.start && timestamps.end) {
+    const durationMs = new Date(timestamps.end) - new Date(timestamps.start);
     const durationMin = durationMs / 60000;
-    if (durationMin < 180) anomalies.push('SHORT_SESSION');
-    if (durationMin > 300) anomalies.push('LONG_SESSION');
+    if (durationMin < ANOMALY_CONFIG.SESSION_DURATION_MIN_MINUTES) {
+      anomalies.push('SHORT_SESSION');
+    }
+    if (durationMin > ANOMALY_CONFIG.SESSION_DURATION_MAX_MINUTES) {
+      anomalies.push('LONG_SESSION');
+    }
   }
 
   return anomalies;
 }
+
+export async function detectSessionAnomalies(session, patientId) {
+  if (!patientId) return [];
+  const patient = await Patient.findById(patientId);
+  if (!patient) return [];
+  return detectSessionAnomaliesForPatient(session, patient);
+}
+

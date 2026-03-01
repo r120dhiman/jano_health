@@ -7,6 +7,7 @@ const sessionSchema = new mongoose.Schema({
     required: true,
     index: true 
   },
+  machine_id: { type: String },
   unit_id: { type: String, required: true },
   timestamps: {
     start: { type: Date, required: true },

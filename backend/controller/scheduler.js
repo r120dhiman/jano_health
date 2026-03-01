@@ -2,10 +2,6 @@ import { Session } from '../Model/session.js';
 import { Patient } from '../Model/patient.js';
 import { detectSessionAnomalies } from '../utils/detectAnomalies.js';
 
-// Returns all sessions for a unit, grouped by patient (example implementation)
-// Get a session by sessionID
-
-
 export const createSession = async (req, res) => {
   try {
     const {
@@ -14,6 +10,7 @@ export const createSession = async (req, res) => {
       dob,
       dry_weight_kg,
       unit_id,
+      machine_id,
       timestamps,
       vitals,
       nurse_notes,
@@ -72,6 +69,7 @@ export const createSession = async (req, res) => {
       patient_id: patient._id,
       unit_id,
       timestamps,
+      machine_id,
       vitals: {
         pre_weight: vitals.pre_weight,
         pre_bp_sys: vitals.pre_bp_sys,

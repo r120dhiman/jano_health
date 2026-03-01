@@ -58,10 +58,15 @@ const StatusBadge: React.FC<{ status?: string }> = ({ status }) => {
     scheduled:   <span className="w-1.5 h-1.5 rounded-full bg-[#9ca3af] inline-block" />,
   };
 
+  const label =
+    status === "scheduled"
+      ? "NOT STARTED"
+      : status.replace("_", " ").toUpperCase();
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${cfg[status] ?? cfg.scheduled}`}>
       {icons[status]}
-      {status.replace("_", " ")}
+      {label}
     </span>
   );
 };

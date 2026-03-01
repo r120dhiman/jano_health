@@ -1,19 +1,27 @@
-const express=require('express');
-const cors=require('cors');
-const connectDB=require('./Database/Dbconnection');
-const app=express();
-const port=5000;
 
-app.use(cors());
+import express from 'express';
+import cors from 'cors';
+import connectDB from './Database/Dbconnection.js';
+import patientRoutes from './routes/patient.js';
+import dotenv from 'dotenv';
+dotenv.config();
+const app = express();
+const port = 3001;
+
+
+app.use(cors({
+    origin: '*'
+}));
 app.use(express.json());
-const mongoURI=process.env.MongoURI;
-connectDB(mongoURI);
+connectDB();
 
 
-app.get('/',(req,res)=>{
+
+app.get('/', (req, res) => {
     res.send('Hello World!');
 });
+app.use('/api/patients', patientRoutes);
 
-app.listen(port,()=>{
+app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
